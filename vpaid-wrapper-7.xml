@@ -23,7 +23,7 @@
             </VideoClicks>
             <MediaFiles>
               <MediaFile delivery="progressive" type="application/javascript" apiFramework="VPAID" width="640" height="360" scalable="true" maintainAspectRatio="true">
-                <![CDATA[https://cdn.jsdelivr.net/gh/peterisnuwara/Rewarded-test@main/vpaid-rewarded-test-6.js]]>
+                <![CDATA[https://cdn.jsdelivr.net/gh/peterisnuwara/Rewarded-test@main/vpaid-rewarded-test-7.js]]>
               </MediaFile>
             </MediaFiles>
           </Linear>
