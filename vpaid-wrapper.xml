@@ -10,7 +10,7 @@
           <Linear>
             <Duration>00:00:10</Duration>
             <VideoClicks>
-              <ClickThrough><![CDATA[https://example.com]]></ClickThrough>
+              <ClickThrough><![CDATA[https://nuwara.io]]></ClickThrough>
             </VideoClicks>
             <MediaFiles>
               <MediaFile delivery="progressive" type="application/javascript" apiFramework="VPAID" width="640" height="360" scalable="true" maintainAspectRatio="true">
