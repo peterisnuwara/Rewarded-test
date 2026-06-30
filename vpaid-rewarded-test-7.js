@@ -1,12 +1,13 @@
 /**
- * Custom VPAID 2.0 Creative for GAM Web Rewarded Ads - Version 6
- * Streamlined 5-Second Autoclose with Dummy Video Injection
+ * Custom VPAID 2.0 Creative for GAM Web Rewarded Ads - Version 7
+ * Fix: implements VPAID 2.0 subscribe/unsubscribe (was addEventListener) so the
+ * IMA SDK can receive AdLoaded/AdStarted and actually play the ad.
  */
 var VpaidAnid = function() {
     this._slot = null;
     this._videoSlot = null;
     this._eventsMap = {};
-    this._duration = 5; // Updated to 5 seconds
+    this._duration = 5;
     this._remainingTime = 5;
     this._countdownInterval = null;
     this._attributes = { 'width' : 0, 'height' : 0, 'viewable' : true };
@@ -22,7 +23,7 @@ VpaidAnid.prototype.initAd = function(width, height, viewMode, desiredBitrate, c
 
 VpaidAnid.prototype.startAd = function() {
     var self = this;
-    
+
     // 1. Inject a dummy video element to fulfill Google's SDK lookup requirements
     if (this._slot) {
         var dummyVideo = document.createElement('video');
@@ -70,7 +71,6 @@ VpaidAnid.prototype.startAd = function() {
         if (countdownElement) {
             countdownElement.innerText = self._remainingTime;
         }
-
         if (self._remainingTime <= 0) {
             clearInterval(self._countdownInterval);
             self.stopAd();
@@ -80,28 +80,38 @@ VpaidAnid.prototype.startAd = function() {
 
 VpaidAnid.prototype.stopAd = function() {
     if (this._countdownInterval) clearInterval(this._countdownInterval);
-    
-    // Clean up DOM elements
+
     var canvas = document.getElementById('vpaid-test-container');
     if (canvas && canvas.parentNode) { canvas.parentNode.removeChild(canvas); }
-    
+
     var video = document.getElementById('vpaid-dummy-video');
     if (video && video.parentNode) { video.parentNode.removeChild(video); }
 
-    // End the ad session cleanly
+    // AdVideoComplete is what grants the reward in GAM.
     this.callEvent('AdVideoComplete');
     this.callEvent('AdStopped');
 };
 
-VpaidAnid.prototype.addEventListener = function(a,b,c) { this._eventsMap[a] = b; };
-VpaidAnid.prototype.removeEventListener = function(a) { delete this._eventsMap[a]; };
-VpaidAnid.prototype.callEvent = function(eventType, args) { 
-    if (eventType in this._eventsMap) { this._eventsMap[eventType].apply(null, args || []); } 
+// ===== THE FIX: VPAID 2.0 requires subscribe/unsubscribe (NOT addEventListener) =====
+// Note: callback is the FIRST arg, event name SECOND — opposite of addEventListener.
+VpaidAnid.prototype.subscribe = function(callback, eventName, context) {
+    this._eventsMap[eventName] = { fn: callback, ctx: context };
 };
+VpaidAnid.prototype.unsubscribe = function(eventName) {
+    delete this._eventsMap[eventName];
+};
+VpaidAnid.prototype.callEvent = function(eventType, args) {
+    if (eventType in this._eventsMap) {
+        var sub = this._eventsMap[eventType];
+        sub.fn.apply(sub.ctx || null, args || []);
+    }
+};
+// ====================================================================================
+
 VpaidAnid.prototype.handshakeVersion = function(version) { return "2.0"; };
 VpaidAnid.prototype.getAdLinear = function() { return true; };
 VpaidAnid.prototype.getAdDuration = function() { return this._duration; };
-VpaidAnid.prototype.getAdRemainingTime = function() { return this._remainingTime; }; 
+VpaidAnid.prototype.getAdRemainingTime = function() { return this._remainingTime; };
 VpaidAnid.prototype.getAdWidth = function() { return this._attributes['width']; };
 VpaidAnid.prototype.getAdHeight = function() { return this._attributes['height']; };
 VpaidAnid.prototype.getAdVolume = function() { return 0; };
@@ -112,5 +122,10 @@ VpaidAnid.prototype.resumeAd = function() {};
 VpaidAnid.prototype.expandAd = function() {};
 VpaidAnid.prototype.collapseAd = function() {};
 VpaidAnid.prototype.skipAd = function() {};
+VpaidAnid.prototype.getAdExpanded = function() { return false; };
+VpaidAnid.prototype.getAdSkippableState = function() { return false; };
+VpaidAnid.prototype.getAdIcons = function() { return false; };
+VpaidAnid.prototype.getAdCompanions = function() { return ''; };
 
-getVPAIDAd = function() { return new VpaidAnid(); };
+// Explicit factory on window (don't rely on implicit globals).
+window.getVPAIDAd = function() { return new VpaidAnid(); };
