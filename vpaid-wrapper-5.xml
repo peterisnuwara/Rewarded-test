@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VAST version="3.0">
+  <Ad id="vpaid-house-test">
+    <InLine>
+      <AdSystem version="1.0">Nuwara VPAID Engine</AdSystem>
+      <AdTitle>Immediate 5-Second Test Ad</AdTitle>
+      <Description>Minimalist VPAID wrapper for immediate execution and 5-second auto-close without rewards.</Description>
+      <Impression>
+        <![CDATA[]]>
+      </Impression>
+      <Creatives>
+        <Creative sequence="1" id="vpaid-creative-1">
+          <Linear>
+            <Duration>00:00:05</Duration>
+            <TrackingEvents>
+              <Tracking event="start"><![CDATA[]]></Tracking>
+              <Tracking event="firstQuartile"><![CDATA[]]></Tracking>
+              <Tracking event="midpoint"><![CDATA[]]></Tracking>
+              <Tracking event="thirdQuartile"><![CDATA[]]></Tracking>
+              <Tracking event="complete"><![CDATA[]]></Tracking>
+            </TrackingEvents>
+            <VideoClicks>
+              <ClickThrough>
+                <![CDATA[https://nuwara.io]]>
+              </ClickThrough>
+            </VideoClicks>
+            <MediaFiles>
+              <MediaFile delivery="progressive" type="application/javascript" apiFramework="VPAID" width="640" height="360" scalable="true" maintainAspectRatio="true">
+                <![CDATA[https://cdn.jsdelivr.net/gh/peterisnuwara/Rewarded-test@main/vpaid-rewarded-test-6.js]]>
+              </MediaFile>
+            </MediaFiles>
+          </Linear>
+        </Creative>
+      </Creatives>
+    </InLine>
+  </Ad>
+</VAST>
