@@ -63,12 +63,17 @@ VpaidAnid.prototype.startAd = function() {
     this.callEvent('AdImpression');
     this.callEvent('AdVideoStart');
 
-    // 3. Setup click tracking event listener
+   // 3. Setup click tracking event listener
     document.getElementById('vpaid-click').addEventListener('click', function(e) {
         e.preventDefault();
-        // Fire VPAID click. Arguments: url, id, playerHandles
-        // playerHandles=true tells IMA SDK to open the VAST clickthrough URL and track it.
-        self.callEvent('AdClickThru', ['', '', true]); 
+        
+        // Step A: Manually open the destination URL in a new tab safely
+        window.open('https://nuwara.io', '_blank');
+        
+        // Step B: Tell IMA a click happened so GAM registers the metric.
+        // Crucial: The third argument is false. This tells IMA NOT to try and 
+        // handle the click navigation or touch the media elements, preventing the crash.
+        self.callEvent('AdClickThru', ['', '', false]); 
     });
 
     // 4. Start countdown timer to simulate video progression
