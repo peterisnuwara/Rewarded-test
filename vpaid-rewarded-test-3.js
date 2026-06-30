@@ -1,19 +1,14 @@
 /**
- * Custom VPAID 2.0 Creative for GAM Web Rewarded Ads
- * Simulates a display banner inside a video (1x1v) line item slot.
+ * Custom VPAID 2.0 Creative for GAM Web Rewarded Ads - Version 3
  */
 var VpaidAnid = function() {
     this._slot = null;
     this._videoSlot = null;
     this._eventsMap = {};
-    this._duration = 10; // Ad length in seconds
+    this._duration = 10; 
     this._remainingTime = 10;
     this._countdownInterval = null;
-    this._attributes = {
-        'width' : 0,
-        'height' : 0,
-        'viewable' : true
-    };
+    this._attributes = { 'width' : 0, 'height' : 0, 'viewable' : true };
 };
 
 VpaidAnid.prototype.initAd = function(width, height, viewMode, desiredBitrate, creativeData, environmentVars) {
@@ -21,17 +16,18 @@ VpaidAnid.prototype.initAd = function(width, height, viewMode, desiredBitrate, c
     this._videoSlot = environmentVars.videoSlot;
     this._attributes['width'] = width;
     this._attributes['height'] = height;
-    
-    this.log("VPAID Initialized");
     this.callEvent('AdLoaded');
 };
 
 VpaidAnid.prototype.startAd = function() {
-    this.log("VPAID Started");
     var self = this;
     
-    // 1. Create a beautiful display HTML banner canvas
     var canvas = document.createElement('div');
+    // 🌟 CRITICAL FIX: Force the canvas to sit on top of IMA's invisible overlay
+    canvas.style.position = 'absolute';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.zIndex = '999999'; 
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     canvas.style.background = 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)';
@@ -46,8 +42,6 @@ VpaidAnid.prototype.startAd = function() {
     canvas.style.boxSizing = 'border-box';
     canvas.id = 'vpaid-test-container';
 
-    // 2. Add structural display elements 
-    // Notice we use a <div> acting as a button instead of an <a> tag to avoid double-clicks
     canvas.innerHTML = `
         <h1 style="margin: 0 0 10px 0; font-size: 26px; font-weight: 700;">🎁 House Display Test 🎁</h1>
         <p style="margin: 0 0 15px 0; font-size: 16px; opacity: 0.9;">Simulating a display creative inside a VAST 1x1v slot.</p>
@@ -63,31 +57,26 @@ VpaidAnid.prototype.startAd = function() {
     this.callEvent('AdImpression');
     this.callEvent('AdVideoStart');
 
- // 3. Setup click tracking event listener
+    // 3. Setup click tracking event listener
     document.getElementById('vpaid-click').addEventListener('click', function(e) {
         e.preventDefault();
-        e.stopPropagation(); // 🌟 CRITICAL: Stops the click from bubbling up to the IMA SDK container!
+        e.stopPropagation(); 
         
-        // Open the window manually
-        window.open('https://example.com', '_blank');
+        // Open your landing page safely
+        window.open('https://nuwara.io', '_blank'); 
         
-        // Notify IMA safely for dashboard reporting
-        self.callEvent('AdClickThru', ['', '', false]); 
+        // 🌟 CRITICAL FIX: Removed self.callEvent('AdClickThru')
+        // Removing this prevents the IMA SDK from searching for a non-existent video player and crashing.
     });
 
-    // 4. Start countdown timer to simulate video progression
     var timerElement = document.getElementById('vpaid-timer');
-    
     this._countdownInterval = setInterval(function() {
         self._remainingTime--;
-        
         if (timerElement) {
             timerElement.innerText = "Rewarding in: " + self._remainingTime + "s";
         }
         
-        // Trigger quartiles for proper tracking reporting
         var percentComplete = (self._duration - self._remainingTime) / self._duration;
-        
         if (percentComplete === 0.25) self.callEvent('AdVideoFirstQuartile');
         if (percentComplete === 0.50) self.callEvent('AdVideoMidpoint');
         if (percentComplete === 0.75) self.callEvent('AdVideoThirdQuartile');
@@ -100,42 +89,28 @@ VpaidAnid.prototype.startAd = function() {
 };
 
 VpaidAnid.prototype.stopAd = function() {
-    this.log("VPAID Stopping/Completing");
     if (this._countdownInterval) clearInterval(this._countdownInterval);
-    
     var element = document.getElementById('vpaid-test-container');
-    if (element && element.parentNode) {
-        element.parentNode.removeChild(element);
-    }
-    
-    // Firing AdVideoComplete is strictly required for GAM to grant the reward!
+    if (element && element.parentNode) { element.parentNode.removeChild(element); }
     this.callEvent('AdVideoComplete');
     this.callEvent('AdStopped');
 };
 
-// VPAID Technical boilerplate mapping
 VpaidAnid.prototype.addEventListener = function(a,b,c) { this._eventsMap[a] = b; };
 VpaidAnid.prototype.removeEventListener = function(a) { delete this._eventsMap[a]; };
-// Upgraded callEvent to accept arguments
 VpaidAnid.prototype.callEvent = function(eventType, args) { 
-    if (eventType in this._eventsMap) { 
-        this._eventsMap[eventType].apply(null, args || []); 
-    } 
+    if (eventType in this._eventsMap) { this._eventsMap[eventType].apply(null, args || []); } 
 };
 VpaidAnid.prototype.handshakeVersion = function(version) { return "2.0"; };
 VpaidAnid.prototype.log = function(msg) { console.log("[VPAID Display Ad]: " + msg); };
 VpaidAnid.prototype.getAdLinear = function() { return true; };
 VpaidAnid.prototype.getAdDuration = function() { return this._duration; };
-// CRITICAL FIX: Must return dynamic decreasing time for IMA SDK
 VpaidAnid.prototype.getAdRemainingTime = function() { return this._remainingTime; }; 
 VpaidAnid.prototype.getAdWidth = function() { return this._attributes['width']; };
 VpaidAnid.prototype.getAdHeight = function() { return this._attributes['height']; };
 VpaidAnid.prototype.getAdVolume = function() { return 0; };
 VpaidAnid.prototype.setAdVolume = function(val) {};
-VpaidAnid.prototype.resizeAd = function(width, height, viewMode) {
-    this._attributes['width'] = width;
-    this._attributes['height'] = height;
-};
+VpaidAnid.prototype.resizeAd = function(width, height, viewMode) {};
 VpaidAnid.prototype.pauseAd = function() {};
 VpaidAnid.prototype.resumeAd = function() {};
 VpaidAnid.prototype.expandAd = function() {};
