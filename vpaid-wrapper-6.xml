@@ -14,9 +14,6 @@
             <Duration>00:00:05</Duration>
             <TrackingEvents>
               <Tracking event="start"><![CDATA[]]></Tracking>
-              <Tracking event="firstQuartile"><![CDATA[]]></Tracking>
-              <Tracking event="midpoint"><![CDATA[]]></Tracking>
-              <Tracking event="thirdQuartile"><![CDATA[]]></Tracking>
               <Tracking event="complete"><![CDATA[]]></Tracking>
             </TrackingEvents>
             <VideoClicks>
