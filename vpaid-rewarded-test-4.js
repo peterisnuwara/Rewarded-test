@@ -1,5 +1,6 @@
 /**
- * Custom VPAID 2.0 Creative for GAM Web Rewarded Ads - Version 3
+ * Custom VPAID 2.0 Creative for GAM Web Rewarded Ads - Version 4
+ * Uses Capture-Phase Interception to bypass the IMA SDK click crash.
  */
 var VpaidAnid = function() {
     this._slot = null;
@@ -22,12 +23,11 @@ VpaidAnid.prototype.initAd = function(width, height, viewMode, desiredBitrate, c
 VpaidAnid.prototype.startAd = function() {
     var self = this;
     
+    // 1. Create the Display Canvas
     var canvas = document.createElement('div');
-    // 🌟 CRITICAL FIX: Force the canvas to sit on top of IMA's invisible overlay
     canvas.style.position = 'absolute';
     canvas.style.top = '0';
     canvas.style.left = '0';
-    canvas.style.zIndex = '999999'; 
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     canvas.style.background = 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)';
@@ -57,18 +57,22 @@ VpaidAnid.prototype.startAd = function() {
     this.callEvent('AdImpression');
     this.callEvent('AdVideoStart');
 
-    // 3. Setup click tracking event listener
-    document.getElementById('vpaid-click').addEventListener('click', function(e) {
+    // 3. 🌟 CRITICAL: Capture-Phase Interception
+    // We attach the listener to the outer slot container.
+    // Setting the 3rd argument to 'true' intercepts the click BEFORE Google can see it.
+    this._slot.addEventListener('click', function(e) {
+        e.stopPropagation();
         e.preventDefault();
-        e.stopPropagation(); 
         
-        // Open your landing page safely
-        window.open('https://nuwara.io', '_blank'); 
+        // Check if the user clicked the button or anything inside the button
+        var clickedButton = e.target.id === 'vpaid-click' || e.target.closest('#vpaid-click');
         
-        // 🌟 CRITICAL FIX: Removed self.callEvent('AdClickThru')
-        // Removing this prevents the IMA SDK from searching for a non-existent video player and crashing.
-    });
+        if (clickedButton) {
+            window.open('https://nuwara.io', '_blank');
+        }
+    }, true); // <-- 'true' enables the capture phase. This is the fix.
 
+    // 4. Countdown Timer
     var timerElement = document.getElementById('vpaid-timer');
     this._countdownInterval = setInterval(function() {
         self._remainingTime--;
